@@ -2,23 +2,27 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 
-export default function Login() {
-  const { login } = useAuth();
+export default function Register() {
+  const { register } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (password !== confirm) {
+      return setError("Passwords do not match");
+    }
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
+      await register(email, password);
       navigate("/");
     } catch (err) {
-      setError("Email or password incorrect");
+      setError("Error creating account. Try another email");
     }
     setLoading(false);
   }
@@ -26,7 +30,7 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 400, margin: "100px auto", padding: "0 20px" }}>
       <h1>Rugby Analytics</h1>
-      <h2>Log In</h2>
+      <h2>Sign up</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <div>
@@ -47,11 +51,20 @@ export default function Login() {
             required
           />
         </div>
+        <div>
+          <label>Confirm Password</label>
+          <input
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            required
+          />
+        </div>
         <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Log in"}
+          {loading ? "Creating account..." : "Sign up"}
         </button>
       </form>
-      <p>Don't have an account? <Link to="/register">Sign up</Link></p>
+      <p>Already have an account? <Link to="/login">Log in</Link></p>
     </div>
   );
 }
