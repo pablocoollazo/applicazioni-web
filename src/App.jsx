@@ -6,7 +6,7 @@ import Login from "./pages/Login"
 function App() {
   return (
     <div>
-      <h1>Gameboxd 🎮</h1>
+      <h1>Rugby Analytics</h1>
       <Navbar />
 
       <Routes>
