@@ -5,23 +5,30 @@ import {
 
 //CLUBS
 export async function createClub(name, userId) {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const clubRef = doc(collection(db, "clubs"));
-    await setDoc(clubRef, { name, code, creatorId: userId, members: [userId], createdIn: new Date() });
-    await setDoc(doc(db, "users", userId), { clubId: clubRef.id });
-    return { clubId: clubRef.id, code };
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const clubRef = doc(collection(db, "clubs"));
+  await setDoc(clubRef, {
+    name,
+    code,
+    creatorId: userId,
+    members: { [userId]: "admin" },
+    createdIn: new Date()
+  });
+  await setDoc(doc(db, "users", userId), { clubId: clubRef.id, role: "admin" });
+  return { clubId: clubRef.id, code };
 }
 
 export async function joinClub(code, userId) {
-    const q = query(collection(db, "clubs"), where("code", "==", code));
-    const snap = await getDocs(q); 
-    if (snap.empty) {
-        throw new Error("Club not found");
-    }
-    const clubDoc = snap.docs[0];
-    await updateDoc(doc(db, "clubs", clubDoc.id), { members: [...clubDoc.data().members, userId] });
-    await setDoc(doc(db, "users", userId), { clubId: clubDoc.id });
-    return clubDoc.id;
+  const q = query(collection(db, "clubs"), where("code", "==", code));
+  const snap = await getDocs(q);
+  if (snap.empty) throw new Error("Club not found");
+  const clubDoc = snap.docs[0];
+  const currentMembers = clubDoc.data().members;
+  await updateDoc(doc(db, "clubs", clubDoc.id), {
+    members: { ...currentMembers, [userId]: "member" }
+  });
+  await setDoc(doc(db, "users", userId), { clubId: clubDoc.id, role: "member" });
+  return clubDoc.id;
 }
 
 export async function getUserClub(userId) {
@@ -64,4 +71,12 @@ export async function setStats(matchId, statsData) {
 export async function getStats(matchId) {
     const snap = await getDoc(doc(db, "stats", matchId));
     return snap.exists() ? snap.data() : null;
+}
+
+//ROLES
+export async function updateMemberRole(clubId, targetUserId, newRole) {
+  await updateDoc(doc(db, "clubs", clubId), {
+    [`members.${targetUserId}`]: newRole
+  });
+  await updateDoc(doc(db, "users", targetUserId), { role: newRole });
 }
