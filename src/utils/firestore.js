@@ -1,6 +1,6 @@
 import { db } from "../firebase";
 import { 
-    doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, updateDoc
+    doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc
 } from "firebase/firestore";
 
 //CLUBS
@@ -50,6 +50,10 @@ export async function getClubPlayers(clubId) {
     const q = query(collection(db, "players"), where("clubId", "==", clubId));
     const snap = await getDocs(q);
     return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function deletePlayer(playerId) {
+  await deleteDoc(doc(db, "players", playerId));
 }
 
 //MATCHES
