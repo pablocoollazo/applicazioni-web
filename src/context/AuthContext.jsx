@@ -15,25 +15,28 @@ export function AuthProvider({ children }) {
   const [club, setClub] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [clubLoading, setClubLoading] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u) {
+        setClubLoading(true);
         getUserClub(u.uid).then((clubData) => {
           setClub(clubData);
-          setRole(clubData ? clubData.members[u.uid] : null);
+          setRole(clubData?.members?.[u.uid] || null);
+          setClubLoading(false);
           setLoading(false);
         });
       } else {
         setClub(null);
         setRole(null);
+        setClubLoading(false);
         setLoading(false);
       }
     });
     return unsub;
   }, []);
-  
 
   const login = (email, password) =>
     signInWithEmailAndPassword(auth, email, password);
@@ -44,7 +47,7 @@ export function AuthProvider({ children }) {
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, club, role, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, club, role, loading, clubLoading, login, register, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );
